@@ -1,0 +1,8 @@
+<launch>
+  <!-- Start the ROS serial node to talk to the TivaC board -->
+  <node pkg="rosserial_python" name="rosserial_opticar" type="serial_node.py" output="screen">
+    <param name="port" value="/dev/tiva" />
+    <param name="baud" value="115200" />
+  </node>
+  <include file="$(find rosbridge_server)/launch/rosbridge_websocket.launch" />
+</launch>

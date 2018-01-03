@@ -1,0 +1,14 @@
+<launch>
+  <!-- Start the ROS serial node to talk to the TivaC board -->
+  <node pkg="rosserial_python" name="rosserial_opticar" type="serial_node.py" output="screen">
+    <param name="port" value="/dev/tiva" />
+    <param name="baud" value="115200" />
+  </node>
+  <node pkg="joy" name="opticar_joystick_input" type="joy_node">
+    <param name="deadzone" value="0.1" />
+    <param name="dev" value="/dev/input/js0" />
+  </node>
+  <node pkg="opticar_ros" name="opticar_teleop_node" type="opticar_teleop_xbox_node">
+  </node>
+  <include file="$(find rosbridge_server)/launch/rosbridge_websocket.launch" />
+</launch>
