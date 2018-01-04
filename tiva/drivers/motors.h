@@ -22,6 +22,7 @@ bool MOTOR_Init();
 bool MOTOR_EmergencyStop();
 bool MOTOR_ReleaseEmergencyStop();
 void MOTOR_SetSpeed(MOTOR_Wheels wheel, int32_t percentage);
+uint32_t MOTOR_GetEncoderCounter(MOTOR_Wheels wheel);
 
 #ifdef __cplusplus
 }

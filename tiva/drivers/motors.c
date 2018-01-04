@@ -40,6 +40,18 @@ static struct
                  {PWM0_BASE, PWM_GEN_3, PWM_OUT_6, PWM_OUT_6_BIT, GPIO_PORTB_BASE, GPIO_PIN_3, 0, true}, // HR
 };
 
+static struct
+{
+  uint32_t GPIO_BASE;
+  uint32_t GPIO_PIN;
+  uint32_t counter;
+} ENCODERDATA[] = {
+  {GPIO_PORTD_BASE, GPIO_PIN_0, 0}, // VL
+  {GPIO_PORTE_BASE, GPIO_PIN_0, 0}, // VR
+  {GPIO_PORTD_BASE, GPIO_PIN_1, 0}, // HL
+  {GPIO_PORTD_BASE, GPIO_PIN_2, 0}, // HR
+};
+
 
 uint32_t PWM_PERIOD = 0;
 uint32_t EMERGENCY_STOP = 0;
@@ -51,6 +63,27 @@ static int32_t clamp(int32_t value, int32_t minimum, int32_t maximum)
     if (value < minimum) return minimum;
     if (value > maximum) return maximum;
     return value;
+}
+
+// Encoder interrupts
+void InterruptEncoder()
+{
+  for (int i = 0; i < (sizeof(ENCODERDATA) / sizeof(ENCODERDATA[0])); ++i)
+  {
+    uint32_t intStatus = GPIOIntStatus(ENCODERDATA[i].GPIO_BASE, true);
+    if (intStatus & ENCODERDATA[i].GPIO_PIN)
+    {
+      GPIOIntClear(ENCODERDATA[i].GPIO_BASE, ENCODERDATA[i].GPIO_PIN);
+      if (MOTORDATA[i].currentSpeedPercentage < 0)
+      {
+        --ENCODERDATA[i].counter;
+      }
+      else
+      {
+        ++ENCODERDATA[i].counter;
+      }
+    }
+  }
 }
 
 bool MOTOR_Init()
@@ -110,6 +143,16 @@ bool MOTOR_Init()
     MOTOR_SetSpeed(REAR_LEFT, 0);
     MOTOR_SetSpeed(REAR_RIGHT, 0);
 
+    // Initialize encoders
+    for (int wheel = 0; wheel < (sizeof(ENCODERDATA) / sizeof(ENCODERDATA[0])); ++wheel)
+    {
+      GPIOPinTypeGPIOInput(ENCODERDATA[wheel].GPIO_BASE, ENCODERDATA[wheel].GPIO_PIN);
+      GPIOPadConfigSet(ENCODERDATA[wheel].GPIO_BASE, ENCODERDATA[wheel].GPIO_PIN, GPIO_STRENGTH_2MA, GPIO_PIN_TYPE_STD_WPU);
+      GPIOIntRegister(ENCODERDATA[wheel].GPIO_BASE, InterruptEncoder);
+      GPIOIntTypeSet(ENCODERDATA[wheel].GPIO_BASE, ENCODERDATA[wheel].GPIO_PIN, GPIO_RISING_EDGE);
+      GPIOIntEnable(ENCODERDATA[wheel].GPIO_BASE, ENCODERDATA[wheel].GPIO_PIN);
+    }
+
     return true;
 }
 
@@ -167,6 +210,8 @@ void MOTOR_SetSpeed(MOTOR_Wheels wheel, int32_t percentage)
 
     int pulseWidth = (absSpeed * PWM_PERIOD) / 100;
 
+    MOTORDATA[wheel].currentSpeedPercentage = percentage;
+
     if (pulseWidth < 1)
     {
         PWMOutputState(MOTORDATA[wheel].PWM_BASE, MOTORDATA[wheel].PWM_PIN_BIT, true);
@@ -218,4 +263,9 @@ void MOTOR_SetSpeed(MOTOR_Wheels wheel, int32_t percentage)
         PWMOutputState(MOTORDATA[wheel].PWM_BASE, MOTORDATA[wheel].PWM_PIN_BIT, true);
         GPIOPinWrite(MOTORDATA[wheel].DIRECTION_BASE, MOTORDATA[wheel].DIRECTION_PIN, direction * MOTORDATA[wheel].DIRECTION_PIN);
     }
+}
+
+uint32_t MOTOR_GetEncoderCounter(MOTOR_Wheels wheel)
+{
+  return ENCODERDATA[wheel].counter;
 }
