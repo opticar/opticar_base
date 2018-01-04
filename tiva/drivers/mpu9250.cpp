@@ -132,7 +132,7 @@ static bool IsMagnetometerDataReady()
 {
   uint8_t reg = I2C_Read(MAG_I2C_ADDR, MAG_REG_STATUS1);
   if (reg == 0xff) return false; // I2C failure
-  
+
   return (reg & 0x01);
 }
 
@@ -183,7 +183,7 @@ bool MPU_Init(MPU9250* mpu)
         result = CalibrateAccel(mpu);
         --tries;
     } while (!result && (tries >= 0));
-    
+
     // Initialize AK8963
     mpu->m_MagWhoAmI = I2C_Read(MAG_I2C_ADDR, 0x00);
     I2C_Write(MAG_I2C_ADDR, MAG_REG_CONTROL2, 0x01);
@@ -195,10 +195,6 @@ bool MPU_Init(MPU9250* mpu)
     ; // Wait for soft reset
     I2C_Write(MAG_I2C_ADDR, MAG_REG_CONTROL1, 0x16); // Set to 100Hz continuous reading and 16bit output mode
     
-    g_Cfg.m_AcceleratorCalibX = 0;
-    g_Cfg.m_AcceleratorCalibY = 0;
-    g_Cfg.m_AcceleratorCalibZ = 0;
-
     CFG_Save();
 
     return true;
@@ -214,7 +210,7 @@ void MPU_GetData(MPU9250* mpu)
     if (!mpu) return;
 
     uint8_t rawData[14];
-  
+
     // Read accelerometer and gyrometer
     I2C_ReadBurst(MPU_I2C_ADDRESS, MPU_REG_RAW_DATA_START, rawData, 14);
 
@@ -235,18 +231,18 @@ void MPU_GetData(MPU9250* mpu)
     mpu->m_GyroRates.m_Angles.m_AX = (float)mpu->m_Gyro.m_Axis.m_X / mpu->m_GyroScale;
     mpu->m_GyroRates.m_Angles.m_AY = (float)mpu->m_Gyro.m_Axis.m_Y / mpu->m_GyroScale;
     mpu->m_GyroRates.m_Angles.m_AZ = (float)mpu->m_Gyro.m_Axis.m_Z / mpu->m_GyroScale;
-    
+
     // Read magnetometer
     for (int i = 0; i < 7; ++i) rawData[i] = 0;
-    
+
     if (IsMagnetometerDataReady())
     {
       I2C_ReadBurst(MAG_I2C_ADDR, MAG_REG_RAW_DATA_START, rawData, 7); // Read past data registers to signal end of transmission to device
-    
+
       mpu->m_Mag.m_Axis.m_X = (int16_t)((rawData[1] << 8) | rawData[0]) - g_Cfg.m_MagnetCalibX;
       mpu->m_Mag.m_Axis.m_Y = (int16_t)((rawData[3] << 8) | rawData[2]) - g_Cfg.m_MagnetCalibY;
       mpu->m_Mag.m_Axis.m_Z = (int16_t)((rawData[5] << 8) | rawData[4]) - g_Cfg.m_MagnetCalibZ;
-    
+
       // Convert to same coordinate frame as accelerometer
       mpu->m_MagInEgoFrame.m_Axis.m_X =  mpu->m_Mag.m_Axis.m_Y;// / mpu->m_MagScale;
       mpu->m_MagInEgoFrame.m_Axis.m_Y =  mpu->m_Mag.m_Axis.m_X;// / mpu->m_MagScale;
