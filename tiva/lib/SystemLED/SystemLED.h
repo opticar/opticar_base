@@ -19,8 +19,8 @@ extern SystemLED Led1;
 extern SystemLED Led2;
 extern SystemLED Led3;
 extern SystemLED Led4;
-extern SystemLED Led5;
-extern SystemLED Led6;
-extern SystemLED Led7;
+extern SystemLED LedHeartbeat;
+extern SystemLED LedEmergencyStop;
+extern SystemLED LedReady;
 
 #endif
