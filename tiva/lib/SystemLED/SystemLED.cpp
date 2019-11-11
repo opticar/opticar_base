@@ -19,12 +19,19 @@ SystemLED LedHeartbeat;
 SystemLED LedEmergencyStop;
 SystemLED LedReady;
 
-SystemLED::SystemLED() : currentState(false), pin(NOT_A_PIN)
+SystemLED::SystemLED() : pin(NOT_A_PIN)
 {
 }
 
 void SystemLED::init()
 {
+  static bool initialized = false;
+
+  if (initialized)
+  {
+    return;
+  }
+
   // Set pin directions and initialize to off
   pinMode(SYSTEM_LED_1_PIN, OUTPUT);
   pinMode(SYSTEM_LED_2_PIN, OUTPUT);
@@ -49,22 +56,21 @@ void SystemLED::init()
   LedHeartbeat.off();
   LedEmergencyStop.off();
   LedReady.off();
+
+  initialized = true;
 }
 
 void SystemLED::on()
 {
-  currentState = true;
-  digitalWrite(pin, currentState);
+  digitalWrite(pin, true);
 }
 
 void SystemLED::off()
 {
-  currentState = false;
-  digitalWrite(pin, currentState);
+  digitalWrite(pin, false);
 }
 
 void SystemLED::toggle()
 {
-  currentState = !currentState;
-  digitalWrite(pin, currentState);
+  digitalWrite(pin, !digitalRead(pin));
 }
