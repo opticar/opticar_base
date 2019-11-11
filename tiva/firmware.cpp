@@ -12,6 +12,7 @@
 #include <opticar_config.h>
 
 // Various drivers
+#include <DemoLED.h>
 #include <SystemLED.h>
 
 #include <ros.h>
@@ -67,6 +68,11 @@ void setup()
 
   // Initialize on-board LEDs
   SystemLED::init();
+  // Switch on heartbeat LED to indicate we are waiting for a connection
+  LedHeartbeat.on();
+
+  // Initialize demonstrator LEDs
+  DemoLed.init();
 
   // Initialize communication
   nh.initNode();
@@ -92,6 +98,15 @@ void setup()
 
   nh.loginfo("Opticar ECU connected");
   LedReady.on();
+
+  DemoLed.setBlockColor(DemoLED::LED_BLOCK_VL, DemoLED::LED_BLUE);
+  DemoLed.setBlockColor(DemoLED::LED_BLOCK_VR, DemoLED::LED_BLUE);
+  DemoLed.setBlockColor(DemoLED::LED_BLOCK_HL, DemoLED::LED_BLUE);
+  DemoLed.setBlockColor(DemoLED::LED_BLOCK_HR, DemoLED::LED_BLUE);
+  DemoLed.setBlockColor(DemoLED::LED_BLOCK_INDL, DemoLED::LED_BLUE);
+  DemoLed.setBlockColor(DemoLED::LED_BLOCK_INDR, DemoLED::LED_BLUE);
+  DemoLed.setBlockColor(DemoLED::LED_BLOCK_REAR, DemoLED::LED_BLUE);
+
   delay(1);
 }
 

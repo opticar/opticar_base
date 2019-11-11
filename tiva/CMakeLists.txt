@@ -30,22 +30,35 @@ set (CORE_SOURCES
 )
 
 # Prepare driver libraries
+# Global configuration
 set (DRIVER_CONFIG_DIR "${CMAKE_CURRENT_SOURCE_DIR}/lib/config")
 include_directories(${DRIVER_CONFIG_DIR})
 
+# Onboard LEDs
 set (DRIVER_SYSTEM_LED_DIR "${CMAKE_CURRENT_SOURCE_DIR}/lib/SystemLED")
 include_directories(${DRIVER_SYSTEM_LED_DIR})
 set (DRIVER_SYSTEM_LED_SOURCES ${DRIVER_SYSTEM_LED_DIR}/SystemLED.cpp)
 
+# WS2812 driver
+set (DRIVER_WS2812_DIR "${CMAKE_CURRENT_SOURCE_DIR}/lib/WS2812_drv/lib")
+include_directories(${DRIVER_WS2812_DIR})
+set (DRIVER_WS2812_SOURCES ${DRIVER_WS2812_DIR}/SPI_uDMA_drv.c ${DRIVER_WS2812_DIR}/WS2812_drv.c)
+
+# Demonstrator LEDs (WS2812 stribes)
+set (DRIVER_DEMO_LED_DIR "${CMAKE_CURRENT_SOURCE_DIR}/lib/DemoLED")
+include_directories(${DRIVER_DEMO_LED_DIR})
+set (DRIVER_DEMO_LED_SOURCES ${DRIVER_DEMO_LED_DIR}/DemoLED.cpp)
+
 set (DRIVER_SOURCES 
-  ${DRIVER_SYSTEM_LED_SOURCES})
+  ${DRIVER_SYSTEM_LED_SOURCES}
+  ${DRIVER_WS2812_SOURCES}
+  ${DRIVER_DEMO_LED_SOURCES}
+  )
 
 # Include rosserial libraries for TivaC
 include_directories(${ROS_LIB_DIR})
 
 # Per project based definitions and options
-#add_definitions(-DLED_HEARTBEAT)
-#add_definitions(-DLED_COMM)
 add_definitions(-DROSSERIAL_BAUDRATE=115200)
 add_definitions(-DTX_BUFFER_SIZE=1024)
 add_definitions(-DRX_BUFFER_SIZE=1024)
