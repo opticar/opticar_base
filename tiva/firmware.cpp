@@ -13,6 +13,7 @@
 
 // Various drivers
 #include <DemoLED.h>
+#include <Imu.h>
 #include <SystemLED.h>
 
 #include <ros.h>
@@ -30,15 +31,16 @@ unsigned long g_PrevCommandTime = 0;  // ms
 
 // Callbacks for the message subscribers
 void commandCallback(const geometry_msgs::Twist &twist);
-void PidCallback(const opticar_msgs::PID &pid);
+void pidCallback(const opticar_msgs::PID &pid);
 
 // Other forward declarations
 void printDebug();
+void publishIMU();
 
 ros::NodeHandle nh;
 
 ros::Subscriber<geometry_msgs::Twist> cmdSub("cmd_vel", commandCallback);
-ros::Subscriber<opticar_msgs::PID> pidSub("pid", PidCallback);
+ros::Subscriber<opticar_msgs::PID> pidSub("pid", pidCallback);
 
 opticar_msgs::IMU rawImuMsg;
 ros::Publisher rawImuPub("raw_imu", &rawImuMsg);
@@ -119,6 +121,29 @@ void loop()
   static unsigned long prevHeartbeatTime = 0;  // ms
   static bool imuIsInitialized = false;
 
+  if (millis() - prevImuTime >= (1000 / IMU_PUBLISH_RATE))
+  {
+    if (!imuIsInitialized)
+    {
+      imuIsInitialized = initIMU();
+
+      if (imuIsInitialized)
+      {
+        nh.loginfo("IMU initialized");
+      }
+      else
+      {
+        nh.logfatal("IMU failed to initialize. Check IMU connection.");
+      }
+    }
+    else
+    {
+      publishIMU();
+    }
+
+    prevImuTime = millis();
+  }
+
   if (DEBUG)
   {
     if (millis() - prevDebugTime >= (1000 / DEBUG_RATE))
@@ -141,8 +166,17 @@ void commandCallback(const geometry_msgs::Twist &twist)
 {
 }
 
-void PidCallback(const opticar_msgs::PID &pid)
+void pidCallback(const opticar_msgs::PID &pid)
 {
+}
+
+void publishIMU()
+{
+  rawImuMsg.acceleration = readAccelerometer();
+  rawImuMsg.rotation = readGyroscope();
+  rawImuMsg.magnetic = readMagnetometer();
+
+  rawImuPub.publish(&rawImuMsg);
 }
 
 void printDebug()

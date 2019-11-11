@@ -42,17 +42,38 @@ set (DRIVER_SYSTEM_LED_SOURCES ${DRIVER_SYSTEM_LED_DIR}/SystemLED.cpp)
 # WS2812 driver
 set (DRIVER_WS2812_DIR "${CMAKE_CURRENT_SOURCE_DIR}/lib/WS2812_drv/lib")
 include_directories(${DRIVER_WS2812_DIR})
-set (DRIVER_WS2812_SOURCES ${DRIVER_WS2812_DIR}/SPI_uDMA_drv.c ${DRIVER_WS2812_DIR}/WS2812_drv.c)
+set (DRIVER_WS2812_SOURCES 
+  ${DRIVER_WS2812_DIR}/SPI_uDMA_drv.c 
+  ${DRIVER_WS2812_DIR}/WS2812_drv.c
+  )
 
 # Demonstrator LEDs (WS2812 stribes)
 set (DRIVER_DEMO_LED_DIR "${CMAKE_CURRENT_SOURCE_DIR}/lib/DemoLED")
 include_directories(${DRIVER_DEMO_LED_DIR})
 set (DRIVER_DEMO_LED_SOURCES ${DRIVER_DEMO_LED_DIR}/DemoLED.cpp)
 
+# I2C/TWI/Wire driver
+set (DRIVER_WIRE_DIR "${ENERGIA_TIVA_BASE}/libraries/Wire")
+include_directories(${DRIVER_WIRE_DIR})
+set (DRIVER_WIRE_SOURCES 
+  ${DRIVER_WIRE_DIR}/Wire.cpp
+  )
+
+# IMU driver from linorobot
+set (DRIVER_IMU_DIR "${CMAKE_CURRENT_SOURCE_DIR}/lib/imu")
+include_directories(${DRIVER_IMU_DIR})
+set (DRIVER_IMU_SOURCES 
+  ${DRIVER_IMU_DIR}/I2Cdev.cpp
+  ${DRIVER_IMU_DIR}/MPU9250.cpp
+  )
+
+# Collect all driver sources
 set (DRIVER_SOURCES 
   ${DRIVER_SYSTEM_LED_SOURCES}
   ${DRIVER_WS2812_SOURCES}
   ${DRIVER_DEMO_LED_SOURCES}
+  ${DRIVER_WIRE_SOURCES}
+  ${DRIVER_IMU_SOURCES}
   )
 
 # Include rosserial libraries for TivaC
@@ -64,6 +85,8 @@ add_definitions(-DTX_BUFFER_SIZE=1024)
 add_definitions(-DRX_BUFFER_SIZE=1024)
 add_definitions(-std=gnu++11)
 add_definitions(-DF_CPU=80000000L)
+add_definitions(-DUSE_MPU9250_IMU)
+add_definitions(-DARDUINO=200)
 
 # Generate target for TivaC
 generate_tivac_firmware(
