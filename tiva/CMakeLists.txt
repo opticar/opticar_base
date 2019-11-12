@@ -88,6 +88,13 @@ set (DRIVER_ENCODER_SOURCES
   ${DRIVER_ENCODER_DIR}/Encoder.cpp
   )
 
+# Kinematics controller from linorobot
+set (DRIVER_KINEMATICS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/lib/kinematics")
+include_directories(${DRIVER_KINEMATICS_DIR})
+set (DRIVER_KINEMATICS_SOURCES 
+  ${DRIVER_KINEMATICS_DIR}/Kinematics.cpp
+  )
+
 # Collect all driver sources
 set (DRIVER_SOURCES 
   ${DRIVER_SYSTEM_LED_SOURCES}
@@ -98,6 +105,7 @@ set (DRIVER_SOURCES
   ${DRIVER_PID_SOURCES}
   ${DRIVER_MOTOR_SOURCES}
   ${DRIVER_ENCODER_SOURCES}
+  ${DRIVER_KINEMATICS_SOURCES}
   )
 
 # Include rosserial libraries for TivaC
@@ -118,28 +126,6 @@ generate_tivac_firmware(
     ${CORE_SOURCES}
     ${DRIVER_SOURCES}
     firmware.cpp
-    #ECU.cpp
-    #constants.h
-    #drivererror.c
-    #config.cpp
-    #config.h
-    #led.c
-    #led.h
-    #kinematic.cpp
-    #kinematic.h
-    #ustdlib.c
-    #drivers/GPS.c
-    #drivers/GPS.h
-    #drivers/i2c.c
-    #drivers/i2c.h
-    #drivers/motors.c
-    #drivers/motors.h
-    #drivers/mpu9250.cpp
-    #drivers/mpu9250.h
-    #drivers/SPI_uDMA_drv.c
-    #drivers/SPI_uDMA_drv.h
-    #drivers/WS2812_drv.c
-    #drivers/WS2812_drv.h
   BOARD tm4c123gxl
   STARTUP ${ENERGIA_TIVA_CORE_SOURCE}/startup_gcc.c
 )

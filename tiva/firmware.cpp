@@ -15,6 +15,7 @@
 #include <DemoLED.h>
 #include <Encoder.h>
 #include <Imu.h>
+#include <Kinematics.h>
 #include <Motor.h>
 #include <PID.h>
 #include <SystemLED.h>
@@ -56,6 +57,9 @@ SingleEncoder EncoderMotor2(ENCODER_PIN1_FRONT_RIGHT, OPTICAR_IMPULSES_PER_REVOL
 SingleEncoder EncoderMotor3(ENCODER_PIN1_REAR_LEFT, OPTICAR_IMPULSES_PER_REVOLUTION);
 // Encoder for rear right motor
 SingleEncoder EncoderMotor4(ENCODER_PIN1_REAR_RIGHT, OPTICAR_IMPULSES_PER_REVOLUTION);
+
+Kinematics BaseKinematics(Kinematics::MECANUM, OPTICAR_MAX_RPM, OPTICAR_WHEEL_DIAMETER, OPTICAR_BASE_LENGTH,
+                          OPTICAR_BASE_WIDTH);
 
 unsigned long g_PrevCommandTime = 0;  // ms
 
@@ -228,21 +232,54 @@ void commandCallback(const geometry_msgs::Twist &twist)
   g_RequestedAngularVelocityZ = twist.angular.z;
 
   g_PrevCommandTime = millis();
-}
 
-void pidCallback(const opticar_msgs::PID &pid)
-{
-  // TODO
-}
-
-void moveBase()
-{
   LedEmergencyStop.off();
   DemoLed.setBlockColor(DemoLED::LED_BLOCK_INDL, DemoLED::LED_GREEN);
   DemoLed.setBlockColor(DemoLED::LED_BLOCK_INDR, DemoLED::LED_GREEN);
   DemoLed.setBlockColor(DemoLED::LED_BLOCK_REAR, DemoLED::LED_GREEN);
+}
 
-  // TODO
+void pidCallback(const opticar_msgs::PID &pid)
+{
+  PidMotor1.updateConstants(pid.p, pid.i, pid.d);
+  PidMotor2.updateConstants(pid.p, pid.i, pid.d);
+  PidMotor3.updateConstants(pid.p, pid.i, pid.d);
+  PidMotor4.updateConstants(pid.p, pid.i, pid.d);
+}
+
+void moveBase()
+{
+  Kinematics::rpm reqRPM =
+      BaseKinematics.getRPM(g_RequestedLinearVelocityX, g_RequestedLinearVelocityY, g_RequestedAngularVelocityZ);
+
+  int currentRPM1 = EncoderMotor1.getRPM();
+  int currentRPM2 = EncoderMotor2.getRPM();
+  int currentRPM3 = EncoderMotor3.getRPM();
+  int currentRPM4 = EncoderMotor4.getRPM();
+
+  // Adjust RPM for motor direction
+  if (Motor1.getCurrentDirection() == Controller::DIR_BACKWARD)
+    currentRPM1 = -currentRPM1;
+  if (Motor2.getCurrentDirection() == Controller::DIR_BACKWARD)
+    currentRPM2 = -currentRPM2;
+  if (Motor3.getCurrentDirection() == Controller::DIR_BACKWARD)
+    currentRPM3 = -currentRPM3;
+  if (Motor4.getCurrentDirection() == Controller::DIR_BACKWARD)
+    currentRPM4 = -currentRPM4;
+
+  // Update motors via controllers
+  Motor1.spin(PidMotor1.compute(reqRPM.motor1, currentRPM1));
+  Motor2.spin(PidMotor2.compute(reqRPM.motor2, currentRPM1));
+  Motor3.spin(PidMotor3.compute(reqRPM.motor3, currentRPM1));
+  Motor4.spin(PidMotor4.compute(reqRPM.motor4, currentRPM1));
+
+  Kinematics::velocities currentVel = BaseKinematics.getVelocities(currentRPM1, currentRPM2, currentRPM3, currentRPM4);
+
+  rawVelMsg.linear_x = currentVel.linear_x;
+  rawVelMsg.linear_y = currentVel.linear_y;
+  rawVelMsg.rotation_z = currentVel.angular_z;
+
+  rawVelPub.publish(&rawVelMsg);
 }
 
 void stopBase()

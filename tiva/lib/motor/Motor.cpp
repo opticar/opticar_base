@@ -66,9 +66,6 @@ void Controller::init(ros::NodeHandle& nh)
 
 void Controller::spin(float pwmPercentage)
 {
-  const uint32_t DIR_FORWARD = 0;
-  const uint32_t DIR_BACKWARD = 1;
-
   if (!initialized)
     return;
 
@@ -104,4 +101,9 @@ void Controller::spin(float pwmPercentage)
       DemoLed.setBlockRaw(ledBlock, 255 * pwmRatio, 0, 0);
     }
   }
+}
+
+int Controller::getCurrentDirection()
+{
+  return currentLogicalDirection;
 }

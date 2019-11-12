@@ -14,6 +14,10 @@ public:
   Controller(int configDataIndex, const DemoLED::LEDBlock ledBlock);
   void init(ros::NodeHandle& nh);
   void spin(float pwmPercentage);
+  int getCurrentDirection();
+
+  static const uint32_t DIR_FORWARD = 0;
+  static const uint32_t DIR_BACKWARD = 1;
 
 private:
   int configDataIndex;
