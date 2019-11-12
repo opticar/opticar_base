@@ -29,6 +29,10 @@
 
 unsigned long g_PrevCommandTime = 0;  // ms
 
+float g_RequestedLinearVelocityX = 0;   // m/s
+float g_RequestedLinearVelocityY = 0;   // m/s
+float g_RequestedAngularVelocityZ = 0;  // rad/s
+
 // Callbacks for the message subscribers
 void commandCallback(const geometry_msgs::Twist &twist);
 void pidCallback(const opticar_msgs::PID &pid);
@@ -36,6 +40,8 @@ void pidCallback(const opticar_msgs::PID &pid);
 // Other forward declarations
 void printDebug();
 void publishIMU();
+void moveBase();
+void stopBase();
 
 ros::NodeHandle nh;
 
@@ -121,7 +127,21 @@ void loop()
   static unsigned long prevHeartbeatTime = 0;  // ms
   static bool imuIsInitialized = false;
 
-  if (millis() - prevImuTime >= (1000 / IMU_PUBLISH_RATE))
+  // Apply drive command with the given update rate
+  if ((millis() - prevControlTime) >= (1000 / COMMAND_RATE))
+  {
+    moveBase();
+    prevControlTime = millis();
+  }
+
+  // Engage emergency stop if no command was received for a given time
+  if ((millis() - g_PrevCommandTime) >= EMERGENCY_STOP_TIMEOUT)
+  {
+    stopBase();
+  }
+
+  // Publish IMU data with the given update rate
+  if ((millis() - prevImuTime) >= (1000 / IMU_PUBLISH_RATE))
   {
     if (!imuIsInitialized)
     {
@@ -144,16 +164,17 @@ void loop()
     prevImuTime = millis();
   }
 
+  // Output some debug data if enabled
   if (DEBUG)
   {
-    if (millis() - prevDebugTime >= (1000 / DEBUG_RATE))
+    if ((millis() - prevDebugTime) >= (1000 / DEBUG_RATE))
     {
       printDebug();
       prevDebugTime = millis();
     }
   }
 
-  if (millis() - prevHeartbeatTime >= (1000 / HEARTBEAT_RATE))
+  if ((millis() - prevHeartbeatTime) >= (1000 / HEARTBEAT_RATE))
   {
     LedHeartbeat.toggle();
     prevHeartbeatTime = millis();
@@ -164,10 +185,36 @@ void loop()
 
 void commandCallback(const geometry_msgs::Twist &twist)
 {
+  g_RequestedLinearVelocityX = twist.linear.x;
+  g_RequestedLinearVelocityY = twist.linear.y;
+  g_RequestedAngularVelocityZ = twist.angular.z;
+
+  g_PrevCommandTime = millis();
 }
 
 void pidCallback(const opticar_msgs::PID &pid)
 {
+  // TODO
+}
+
+void moveBase()
+{
+  LedEmergencyStop.off();
+  DemoLed.setBlockColor(DemoLED::LED_BLOCK_INDL, DemoLED::LED_GREEN);
+  DemoLed.setBlockColor(DemoLED::LED_BLOCK_INDR, DemoLED::LED_GREEN);
+  DemoLed.setBlockColor(DemoLED::LED_BLOCK_REAR, DemoLED::LED_GREEN);
+
+  // TODO
+}
+
+void stopBase()
+{
+  LedEmergencyStop.on();
+  DemoLed.setBlockColor(DemoLED::LED_BLOCK_INDL, DemoLED::LED_BLUE);
+  DemoLed.setBlockColor(DemoLED::LED_BLOCK_INDR, DemoLED::LED_BLUE);
+  DemoLed.setBlockColor(DemoLED::LED_BLOCK_REAR, DemoLED::LED_RED);
+
+  // TODO
 }
 
 void publishIMU()

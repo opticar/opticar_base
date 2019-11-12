@@ -13,4 +13,6 @@
 #define DEBUG_RATE 5         // Hz
 #define HEARTBEAT_RATE 1     // Hz
 
+#define EMERGENCY_STOP_TIMEOUT 400  // ms
+
 #endif
