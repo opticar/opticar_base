@@ -12,10 +12,10 @@
 #define K_D 0.5  // derivative constant
 
 #define IMU_PUBLISH_RATE 20  // Hz
-#define GPS_PUBLISH_RATE 2   // Hz
+#define GPS_PUBLISH_RATE 5   // Hz
 #define COMMAND_RATE 20      // Hz
 #define DEBUG_RATE 1         // Hz
-#define HEARTBEAT_RATE 1     // Hz
+#define HEARTBEAT_RATE 2     // Hz
 
 #define EMERGENCY_STOP_TIMEOUT 400  // ms
 

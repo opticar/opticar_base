@@ -14,6 +14,7 @@
 // Various drivers
 #include <DemoLED.h>
 #include <Encoder.h>
+#include <GPS.h>
 #include <Imu.h>
 #include <Kinematics.h>
 #include <Motor.h>
@@ -30,6 +31,8 @@
 #include <opticar_msgs/PID.h>
 // header file for imu
 #include <opticar_msgs/IMU.h>
+// header file for GPS data
+#include <sensor_msgs/NavSatFix.h>
 
 // Controller for front left motor
 PID PidMotor1(PWM_MIN, PWM_MAX, K_P, K_I, K_D);
@@ -88,6 +91,9 @@ ros::Publisher rawImuPub("raw_imu", &rawImuMsg);
 opticar_msgs::Velocities rawVelMsg;
 ros::Publisher rawVelPub("raw_vel", &rawVelMsg);
 
+sensor_msgs::NavSatFix navSatFix;
+ros::Publisher rawNavSatFixPub("raw_gps", &navSatFix);
+
 extern "C"
 {
   void SysTickDispatcher();
@@ -144,6 +150,7 @@ void setup()
   // Advertise our sensor data
   nh.advertise(rawImuPub);
   nh.advertise(rawVelPub);
+  nh.advertise(rawNavSatFixPub);
 
   while (!nh.connected())
   {
@@ -204,6 +211,17 @@ void loop()
     }
 
     prevImuTime = millis();
+  }
+
+  // Always update GPS internal data
+  BaseGPS.step();
+  // Publish GPS data with the given update rate
+  if ((millis() - prevGpsTime) >= (1000 / GPS_PUBLISH_RATE))
+  {
+    BaseGPS.updateMessage(navSatFix);
+    rawNavSatFixPub.publish(&navSatFix);
+
+    prevGpsTime = millis();
   }
 
   // Output some debug data if enabled

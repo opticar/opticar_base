@@ -95,6 +95,20 @@ set (DRIVER_KINEMATICS_SOURCES
   ${DRIVER_KINEMATICS_DIR}/Kinematics.cpp
   )
 
+# TinyGPS++ GPS message decoder
+set (DRIVER_TINY_GPS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/lib/TinyGPSPlus/src")
+include_directories(${DRIVER_TINY_GPS_DIR})
+set (DRIVER_TINY_GPS_SOURCES 
+  ${DRIVER_TINY_GPS_DIR}/TinyGPS++.cpp
+  )
+
+# Opticar GPS driver
+set (DRIVER_GPS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/lib/GPS")
+include_directories(${DRIVER_GPS_DIR})
+set (DRIVER_GPS_SOURCES 
+  ${DRIVER_GPS_DIR}/GPS.cpp
+  )
+
 # Collect all driver sources
 set (DRIVER_SOURCES 
   ${DRIVER_SYSTEM_LED_SOURCES}
@@ -106,6 +120,8 @@ set (DRIVER_SOURCES
   ${DRIVER_MOTOR_SOURCES}
   ${DRIVER_ENCODER_SOURCES}
   ${DRIVER_KINEMATICS_SOURCES}
+  ${DRIVER_TINY_GPS_SOURCES}
+  ${DRIVER_GPS_SOURCES}
   )
 
 # Include rosserial libraries for TivaC
