@@ -13,7 +13,10 @@
 
 // Various drivers
 #include <DemoLED.h>
+#include <Encoder.h>
 #include <Imu.h>
+#include <Motor.h>
+#include <PID.h>
 #include <SystemLED.h>
 
 #include <ros.h>
@@ -26,6 +29,33 @@
 #include <opticar_msgs/PID.h>
 // header file for imu
 #include <opticar_msgs/IMU.h>
+
+// Controller for front left motor
+PID PidMotor1(PWM_MIN, PWM_MAX, K_P, K_I, K_D);
+// Controller for front right motor
+PID PidMotor2(PWM_MIN, PWM_MAX, K_P, K_I, K_D);
+// Controller for rear left motor
+PID PidMotor3(PWM_MIN, PWM_MAX, K_P, K_I, K_D);
+// Controller for rear right motor
+PID PidMotor4(PWM_MIN, PWM_MAX, K_P, K_I, K_D);
+
+// Motor driver for front left motor
+Controller Motor1(0, DemoLED::LED_BLOCK_VL);
+// Motor driver for front right motor
+Controller Motor2(1, DemoLED::LED_BLOCK_VR);
+// Motor driver for rear left motor
+Controller Motor3(2, DemoLED::LED_BLOCK_HL);
+// Motor driver for rear right motor
+Controller Motor4(3, DemoLED::LED_BLOCK_HR);
+
+// Encoder for front left motor
+SingleEncoder EncoderMotor1(ENCODER_PIN1_FRONT_LEFT, OPTICAR_IMPULSES_PER_REVOLUTION);
+// Encoder for front right motor
+SingleEncoder EncoderMotor2(ENCODER_PIN1_FRONT_RIGHT, OPTICAR_IMPULSES_PER_REVOLUTION);
+// Encoder for rear left motor
+SingleEncoder EncoderMotor3(ENCODER_PIN1_REAR_LEFT, OPTICAR_IMPULSES_PER_REVOLUTION);
+// Encoder for rear right motor
+SingleEncoder EncoderMotor4(ENCODER_PIN1_REAR_RIGHT, OPTICAR_IMPULSES_PER_REVOLUTION);
 
 unsigned long g_PrevCommandTime = 0;  // ms
 
@@ -85,6 +115,18 @@ void setup()
   // Initialize communication
   nh.initNode();
 
+  // Initialize motors
+  Motor1.init(nh);
+  Motor2.init(nh);
+  Motor3.init(nh);
+  Motor4.init(nh);
+
+  // Enable motor drivers
+  pinMode(MOTOR_PIN_ENABLE_FRONT, OUTPUT);
+  digitalWrite(MOTOR_PIN_ENABLE_FRONT, 1);
+  pinMode(MOTOR_PIN_ENABLE_REAR, OUTPUT);
+  digitalWrite(MOTOR_PIN_ENABLE_REAR, 1);
+
   // Reroute system tick handler to our dispatcher
   SysTickIntDisable();
   SysTickIntUnregister();
@@ -107,10 +149,6 @@ void setup()
   nh.loginfo("Opticar ECU connected");
   LedReady.on();
 
-  DemoLed.setBlockColor(DemoLED::LED_BLOCK_VL, DemoLED::LED_BLUE);
-  DemoLed.setBlockColor(DemoLED::LED_BLOCK_VR, DemoLED::LED_BLUE);
-  DemoLed.setBlockColor(DemoLED::LED_BLOCK_HL, DemoLED::LED_BLUE);
-  DemoLed.setBlockColor(DemoLED::LED_BLOCK_HR, DemoLED::LED_BLUE);
   DemoLed.setBlockColor(DemoLED::LED_BLOCK_INDL, DemoLED::LED_BLUE);
   DemoLed.setBlockColor(DemoLED::LED_BLOCK_INDR, DemoLED::LED_BLUE);
   DemoLed.setBlockColor(DemoLED::LED_BLOCK_REAR, DemoLED::LED_BLUE);
@@ -214,7 +252,9 @@ void stopBase()
   DemoLed.setBlockColor(DemoLED::LED_BLOCK_INDR, DemoLED::LED_BLUE);
   DemoLed.setBlockColor(DemoLED::LED_BLOCK_REAR, DemoLED::LED_RED);
 
-  // TODO
+  g_RequestedLinearVelocityX = 0;
+  g_RequestedLinearVelocityY = 0;
+  g_RequestedAngularVelocityZ = 0;
 }
 
 void publishIMU()
@@ -229,6 +269,13 @@ void publishIMU()
 void printDebug()
 {
   char buffer[50];
-  sprintf(buffer, "Debug chatter");
+
+  sprintf(buffer, "Encoder FrontLeft  : %ld", EncoderMotor1.read());
+  nh.loginfo(buffer);
+  sprintf(buffer, "Encoder FrontRight : %ld", EncoderMotor2.read());
+  nh.loginfo(buffer);
+  sprintf(buffer, "Encoder RearLeft   : %ld", EncoderMotor3.read());
+  nh.loginfo(buffer);
+  sprintf(buffer, "Encoder RearRight  : %ld", EncoderMotor4.read());
   nh.loginfo(buffer);
 }

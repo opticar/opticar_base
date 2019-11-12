@@ -67,6 +67,27 @@ set (DRIVER_IMU_SOURCES
   ${DRIVER_IMU_DIR}/MPU9250.cpp
   )
 
+# PID controller from linorobot
+set (DRIVER_PID_DIR "${CMAKE_CURRENT_SOURCE_DIR}/lib/pid")
+include_directories(${DRIVER_PID_DIR})
+set (DRIVER_PID_SOURCES 
+  ${DRIVER_PID_DIR}/PID.cpp
+  )
+
+# Wheel motor driver
+set (DRIVER_MOTOR_DIR "${CMAKE_CURRENT_SOURCE_DIR}/lib/motor")
+include_directories(${DRIVER_MOTOR_DIR})
+set (DRIVER_MOTOR_SOURCES 
+  ${DRIVER_MOTOR_DIR}/Motor.cpp
+  )
+
+# Wheel encoder driver
+set (DRIVER_ENCODER_DIR "${CMAKE_CURRENT_SOURCE_DIR}/lib/encoder")
+include_directories(${DRIVER_ENCODER_DIR})
+set (DRIVER_ENCODER_SOURCES 
+  ${DRIVER_ENCODER_DIR}/Encoder.cpp
+  )
+
 # Collect all driver sources
 set (DRIVER_SOURCES 
   ${DRIVER_SYSTEM_LED_SOURCES}
@@ -74,6 +95,9 @@ set (DRIVER_SOURCES
   ${DRIVER_DEMO_LED_SOURCES}
   ${DRIVER_WIRE_SOURCES}
   ${DRIVER_IMU_SOURCES}
+  ${DRIVER_PID_SOURCES}
+  ${DRIVER_MOTOR_SOURCES}
+  ${DRIVER_ENCODER_SOURCES}
   )
 
 # Include rosserial libraries for TivaC
