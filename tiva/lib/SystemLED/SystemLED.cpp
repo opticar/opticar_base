@@ -1,8 +1,11 @@
 #include <Energia.h>
 
+#include OPTICAR_CFG
+
 #include "SystemLED.h"
 
 // Map system LEDs to pin numbers (see pins_energia.h)
+#ifdef OPTICAR_V1
 #define SYSTEM_LED_1_PIN 17
 #define SYSTEM_LED_2_PIN NOT_A_PIN  // Not available on revision V2
 #define SYSTEM_LED_3_PIN 15
@@ -10,6 +13,17 @@
 #define SYSTEM_LED_5_PIN 13
 #define SYSTEM_LED_6_PIN 12
 #define SYSTEM_LED_7_PIN 11
+#elif defined(OPTICAR_NG)
+#define SYSTEM_LED_1_PIN 11
+#define SYSTEM_LED_2_PIN 12
+#define SYSTEM_LED_3_PIN 13
+#define SYSTEM_LED_4_PIN 14
+#define SYSTEM_LED_5_PIN 15
+#define SYSTEM_LED_6_PIN 17
+#define SYSTEM_LED_7_PIN 19
+#else
+#error SystemLEDs not configured
+#endif
 
 SystemLED Led1;
 SystemLED Led2;

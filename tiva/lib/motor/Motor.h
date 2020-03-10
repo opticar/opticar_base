@@ -3,7 +3,7 @@
 
 #include <Arduino.h>
 
-#include <opticar_config.h>
+#include OPTICAR_CFG
 
 #include <DemoLED.h>
 #include <ros.h>

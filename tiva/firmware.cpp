@@ -9,7 +9,7 @@
 #include "tivac_hardware.h"
 
 // Various configuration settings
-#include <opticar_config.h>
+#include OPTICAR_CFG
 
 // Various drivers
 #include <DemoLED.h>
@@ -132,10 +132,16 @@ void setup()
   Motor4.init(nh);
 
   // Enable motor drivers
+#ifdef OPTICAR_V1
   pinMode(MOTOR_PIN_ENABLE_FRONT, OUTPUT);
   digitalWrite(MOTOR_PIN_ENABLE_FRONT, 1);
   pinMode(MOTOR_PIN_ENABLE_REAR, OUTPUT);
   digitalWrite(MOTOR_PIN_ENABLE_REAR, 1);
+#else
+  pinMode(MOTOR_PIN_NSLEEP, OUTPUT);
+  digitalWrite(MOTOR_PIN_NSLEEP, 1);
+#endif
+
 
   // Reroute system tick handler to our dispatcher
   SysTickIntDisable();
