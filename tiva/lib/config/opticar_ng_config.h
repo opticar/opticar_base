@@ -55,6 +55,8 @@ static struct MotorConfigData
     GPIO_PIN_7, false },  // HR
 };
 
+static int MOTORDIRECTIONPINS[] = { 38, 35, 33, 32 };
+
 #define MOTOR_PIN_NSLEEP 34
 #define MOTOR_PIN_NFAULT 31
 

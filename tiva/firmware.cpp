@@ -114,6 +114,13 @@ void setup()
   MAP_FPUEnable();
   MAP_FPULazyStackingEnable();
 
+  SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOA);
+  SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOB);
+  SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOC);
+  SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOD);
+  SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOE);
+  SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOF);
+
   // Initialize on-board LEDs
   SystemLED::init();
   // Switch on heartbeat LED to indicate we are waiting for a connection
@@ -141,7 +148,6 @@ void setup()
   pinMode(MOTOR_PIN_NSLEEP, OUTPUT);
   digitalWrite(MOTOR_PIN_NSLEEP, 1);
 #endif
-
 
   // Reroute system tick handler to our dispatcher
   SysTickIntDisable();

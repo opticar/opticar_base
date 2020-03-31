@@ -1,5 +1,6 @@
 #include "Motor.h"
 
+#include <SystemLED.h>
 #include "driverlib/sysctl.h"
 
 uint32_t Controller::pwmPeriod = 0;
@@ -56,12 +57,18 @@ void Controller::init(ros::NodeHandle& nh)
   ROM_GPIOPinConfigure(MOTORCONFIGDATA[configDataIndex].CFG_TYPE_PIN);
   ROM_GPIOPinTypePWM(MOTORCONFIGDATA[configDataIndex].OUTPUT_BASE, MOTORCONFIGDATA[configDataIndex].OUTPUT_PIN);
 
-  ROM_GPIOPinTypeGPIOOutput(MOTORCONFIGDATA[configDataIndex].DIRECTION_BASE,
+#if defined(OPTICAR_V1)
+#error Fix this logic for Opticar v1
                             MOTORCONFIGDATA[configDataIndex].DIRECTION_PIN);
+#elif defined(OPTICAR_NG)
+  pinMode(MOTORDIRECTIONPINS[configDataIndex], OUTPUT);
+#else
+#error Undefined Opticar model
+#endif
 
-  initialized = true;
+                            initialized = true;
 
-  spin(0.0f);
+                            spin(0.0f);
 }
 
 void Controller::spin(float pwmPercentage)
@@ -82,8 +89,8 @@ void Controller::spin(float pwmPercentage)
 
   PWMPulseWidthSet(MOTORCONFIGDATA[configDataIndex].PWM_BASE, MOTORCONFIGDATA[configDataIndex].PWM_PIN, pulseWidth);
   PWMOutputState(MOTORCONFIGDATA[configDataIndex].PWM_BASE, MOTORCONFIGDATA[configDataIndex].PWM_PIN_BIT, true);
-  GPIOPinWrite(MOTORCONFIGDATA[configDataIndex].DIRECTION_BASE, MOTORCONFIGDATA[configDataIndex].DIRECTION_PIN,
-               direction);
+
+  digitalWrite(MOTORDIRECTIONPINS[configDataIndex], direction);
 
   if (pulseWidth < 1)
   {
