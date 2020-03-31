@@ -81,7 +81,7 @@ void Controller::spin(float pwmPercentage)
 
   if (MOTORCONFIGDATA[configDataIndex].invert)
   {
-    direction = (direction ? 0 : 1);
+    direction = !direction;
   }
 
   float absSpeed = fabs(pwmPercentage);
