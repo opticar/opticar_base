@@ -41,6 +41,8 @@ public:
   int getRPM();
   uint32_t read();
 
+  void interruptHandler();
+
 private:
   uint32_t counter;
   uint32_t prevCounter;

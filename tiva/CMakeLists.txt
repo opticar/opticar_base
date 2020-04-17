@@ -135,6 +135,7 @@ add_definitions(-std=gnu++11)
 add_definitions(-DF_CPU=80000000L)
 add_definitions(-DUSE_MPU9250_IMU)
 add_definitions(-DARDUINO=200)
+add_definitions(-DDEBUG_OUTPUT=0)
 
 add_definitions(-DOPTICAR_CFG=<opticar_ng_config.h>)
 

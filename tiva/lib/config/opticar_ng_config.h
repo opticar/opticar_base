@@ -7,7 +7,7 @@
 #include "driverlib/pwm.h"
 #include "driverlib/sysctl.h"
 
-#define DEBUG 0
+#define DEBUG 1
 
 #define K_P 0.6  // proportional constant
 #define K_I 0.3  // integral constant
@@ -71,5 +71,13 @@ static int MOTORDIRECTIONPINS[] = { 38, 35, 33, 32 };
 
 #define ENCODER_PIN1_REAR_RIGHT 2
 #define ENCODER_PIN2_REAR_RIGHT 18
+
+#define g_CountFrontLeft 5
+#define g_CountFrontRight 5
+#define g_CountRearLeft 5
+#define g_CountRearRight 5
+#define g_CountIndiLeft 3
+#define g_CountIndiRight 3
+#define g_CountRear 12
 
 #endif

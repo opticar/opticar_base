@@ -19,6 +19,8 @@ public:
 private:
   /// Energia/Arduino pin number for this LED
   int pin;
+
+  bool initialized;
 };
 
 // First LED, closest to the 3-pole pin headers

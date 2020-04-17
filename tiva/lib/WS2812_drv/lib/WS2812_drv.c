@@ -15,10 +15,6 @@
 
 void WStoSPI(uint8_t *pi8SPIData, uint8_t ui8Color)
 {
-
-  // TODO Remove this hack
-  ui8Color = (ui8Color > 10) ? 10 : ui8Color;
-  // TODO end
   int i;
 
   //

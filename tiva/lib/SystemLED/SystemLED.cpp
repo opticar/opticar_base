@@ -33,15 +33,15 @@ SystemLED LedHeartbeat;
 SystemLED LedEmergencyStop;
 SystemLED LedReady;
 
-SystemLED::SystemLED() : pin(NOT_A_PIN)
+SystemLED::SystemLED() : pin(NOT_A_PIN), initialized(false)
 {
 }
 
 void SystemLED::init()
 {
-  static bool initialized = false;
+  static bool initDone = false;
 
-  if (initialized)
+  if (initDone)
   {
     return;
   }
@@ -71,20 +71,33 @@ void SystemLED::init()
   LedEmergencyStop.off();
   LedReady.off();
 
-  initialized = true;
+  Led1.initialized = true;
+  Led2.initialized = true;
+  Led3.initialized = true;
+  Led4.initialized = true;
+  LedHeartbeat.initialized = true;
+  LedEmergencyStop.initialized = true;
+  LedReady.initialized = true;
+  initDone = true;
 }
 
 void SystemLED::on()
 {
+  if (!initialized)
+    return;
   digitalWrite(pin, true);
 }
 
 void SystemLED::off()
 {
+  if (!initialized)
+    return;
   digitalWrite(pin, false);
 }
 
 void SystemLED::toggle()
 {
+  if (!initialized)
+    return;
   digitalWrite(pin, !digitalRead(pin));
 }

@@ -1,6 +1,9 @@
 // This firmware was adapted from the linorobot teensy firmware
 // Available at
 // https://github.com/linorobot/linorobot/blob/master/teensy/firmware/src/firmware.ino
+//
+// To flash, use catkin build --no-deps opticar_base --make-args opticar_base_tiva_flash
+// To test, run a rosserial node: rosrun rosserial_python serial_node.py _port:=/dev/tiva _baud:=115200
 
 #include <Energia.h>
 
@@ -10,6 +13,14 @@
 
 // Various configuration settings
 #include OPTICAR_CFG
+
+// Comment these defines to disable features
+#define USE_MOTORS
+#define USE_ENCODERS
+#define USE_SYSTEM_LEDS
+#define USE_DEMO_LEDS
+#define USE_IMU
+#define USE_GPS
 
 // Various drivers
 #include <DemoLED.h>
@@ -43,6 +54,7 @@ PID PidMotor3(PWM_MIN, PWM_MAX, K_P, K_I, K_D);
 // Controller for rear right motor
 PID PidMotor4(PWM_MIN, PWM_MAX, K_P, K_I, K_D);
 
+#ifdef USE_MOTORS
 // Motor driver for front left motor
 Controller Motor1(0, DemoLED::LED_BLOCK_VL);
 // Motor driver for front right motor
@@ -51,7 +63,9 @@ Controller Motor2(1, DemoLED::LED_BLOCK_VR);
 Controller Motor3(2, DemoLED::LED_BLOCK_HL);
 // Motor driver for rear right motor
 Controller Motor4(3, DemoLED::LED_BLOCK_HR);
+#endif
 
+#ifdef USE_ENCODERS
 // Encoder for front left motor
 SingleEncoder EncoderMotor1(ENCODER_PIN1_FRONT_LEFT, OPTICAR_IMPULSES_PER_REVOLUTION);
 // Encoder for front right motor
@@ -60,6 +74,7 @@ SingleEncoder EncoderMotor2(ENCODER_PIN1_FRONT_RIGHT, OPTICAR_IMPULSES_PER_REVOL
 SingleEncoder EncoderMotor3(ENCODER_PIN1_REAR_LEFT, OPTICAR_IMPULSES_PER_REVOLUTION);
 // Encoder for rear right motor
 SingleEncoder EncoderMotor4(ENCODER_PIN1_REAR_RIGHT, OPTICAR_IMPULSES_PER_REVOLUTION);
+#endif
 
 Kinematics BaseKinematics(Kinematics::MECANUM, OPTICAR_MAX_RPM, OPTICAR_WHEEL_DIAMETER, OPTICAR_BASE_LENGTH,
                           OPTICAR_BASE_WIDTH);
@@ -121,22 +136,28 @@ void setup()
   SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOE);
   SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOF);
 
+#ifdef USE_SYSTEM_LEDS
   // Initialize on-board LEDs
   SystemLED::init();
+#endif
   // Switch on heartbeat LED to indicate we are waiting for a connection
   LedHeartbeat.on();
 
+#ifdef USE_DEMO_LEDS
   // Initialize demonstrator LEDs
   DemoLed.init();
+#endif
 
   // Initialize communication
   nh.initNode();
 
+#ifdef USE_MOTORS
   // Initialize motors
   Motor1.init(nh);
   Motor2.init(nh);
   Motor3.init(nh);
   Motor4.init(nh);
+#endif
 
   // Enable motor drivers
 #ifdef OPTICAR_V1
@@ -206,6 +227,7 @@ void loop()
   {
     if (!imuIsInitialized)
     {
+#ifdef USE_IMU
       imuIsInitialized = initIMU();
 
       if (imuIsInitialized)
@@ -216,6 +238,7 @@ void loop()
       {
         nh.logfatal("IMU failed to initialize. Check IMU connection.");
       }
+#endif
     }
     else
     {
@@ -225,19 +248,23 @@ void loop()
     prevImuTime = millis();
   }
 
+#ifdef USE_GPS
   // Always update GPS internal data
   BaseGPS.step();
+#endif
   // Publish GPS data with the given update rate
   if ((millis() - prevGpsTime) >= (1000 / GPS_PUBLISH_RATE))
   {
+#ifdef USE_GPS
     BaseGPS.updateMessage(navSatFix);
+#endif
     rawNavSatFixPub.publish(&navSatFix);
 
     prevGpsTime = millis();
   }
 
   // Output some debug data if enabled
-  if (DEBUG)
+  if (DEBUG_OUTPUT)
   {
     if ((millis() - prevDebugTime) >= (1000 / DEBUG_RATE))
     {
@@ -282,11 +309,19 @@ void moveBase()
   Kinematics::rpm reqRPM =
       BaseKinematics.getRPM(g_RequestedLinearVelocityX, g_RequestedLinearVelocityY, g_RequestedAngularVelocityZ);
 
+#ifdef USE_ENCODERS
   int currentRPM1 = EncoderMotor1.getRPM();
   int currentRPM2 = EncoderMotor2.getRPM();
   int currentRPM3 = EncoderMotor3.getRPM();
   int currentRPM4 = EncoderMotor4.getRPM();
+#else
+  int currentRPM1 = 0;
+  int currentRPM2 = 0;
+  int currentRPM3 = 0;
+  int currentRPM4 = 0;
+#endif
 
+#ifdef USE_MOTORS
   // Adjust RPM for motor direction
   if (Motor1.getCurrentDirection() == Controller::DIR_BACKWARD)
     currentRPM1 = -currentRPM1;
@@ -302,6 +337,7 @@ void moveBase()
   Motor2.spin(PidMotor2.compute(reqRPM.motor2, currentRPM1));
   Motor3.spin(PidMotor3.compute(reqRPM.motor3, currentRPM1));
   Motor4.spin(PidMotor4.compute(reqRPM.motor4, currentRPM1));
+#endif
 
   Kinematics::velocities currentVel = BaseKinematics.getVelocities(currentRPM1, currentRPM2, currentRPM3, currentRPM4);
 
@@ -326,9 +362,11 @@ void stopBase()
 
 void publishIMU()
 {
+#ifdef USE_IMU
   rawImuMsg.acceleration = readAccelerometer();
   rawImuMsg.rotation = readGyroscope();
   rawImuMsg.magnetic = readMagnetometer();
+#endif
 
   rawImuPub.publish(&rawImuMsg);
 }
@@ -337,12 +375,14 @@ void printDebug()
 {
   char buffer[50];
 
-  sprintf(buffer, "Encoder FrontLeft  : %ld", EncoderMotor1.read());
+#ifdef USE_ENCODERS
+  snprintf(buffer, 50, "Encoder FrontLeft  : %ld", EncoderMotor1.read());
   nh.loginfo(buffer);
-  sprintf(buffer, "Encoder FrontRight : %ld", EncoderMotor2.read());
+  snprintf(buffer, 50, "Encoder FrontRight : %ld", EncoderMotor2.read());
   nh.loginfo(buffer);
-  sprintf(buffer, "Encoder RearLeft   : %ld", EncoderMotor3.read());
+  snprintf(buffer, 50, "Encoder RearLeft   : %ld", EncoderMotor3.read());
   nh.loginfo(buffer);
-  sprintf(buffer, "Encoder RearRight  : %ld", EncoderMotor4.read());
+  snprintf(buffer, 50, "Encoder RearRight  : %ld", EncoderMotor4.read());
   nh.loginfo(buffer);
+#endif
 }

@@ -4,6 +4,7 @@ static SingleEncoder* encoderToPins[64] = { nullptr };
 #define GENERATE_ENCODER_IH(n)                                                                                         \
   void encoderInterrupt##n()                                                                                           \
   {                                                                                                                    \
+    encoderToPins[n]->interruptHandler();                                                                              \
   }
 
 #define GENERATE_ATTACH(n)                                                                                             \
@@ -126,4 +127,9 @@ int SingleEncoder::getRPM()
 uint32_t SingleEncoder::read()
 {
   return counter;
+}
+
+void SingleEncoder::interruptHandler()
+{
+  ++counter;
 }

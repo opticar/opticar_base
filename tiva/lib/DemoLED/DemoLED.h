@@ -1,16 +1,12 @@
 #ifndef DEMO_LED_H
 #define DEMO_LED_H
 
-#define LED_OFFSET 0
-#define NUM_SHOW_LEDS 41 + LED_OFFSET  // 6 VR, 2 BlinkR, 5 HR, 15 H, 5 HL, 2 BlinkL, 6 VL = 41
+#include OPTICAR_CFG
 
-#define g_CountFrontLeft 6
-#define g_CountFrontRight 6
-#define g_CountRearLeft 5
-#define g_CountRearRight 5
-#define g_CountIndiLeft 2
-#define g_CountIndiRight 2
-#define g_CountRear 13
+#define LED_OFFSET 0
+#define NUM_SHOW_LEDS                                                                                                  \
+  LED_OFFSET + g_CountFrontLeft + g_CountFrontRight + g_CountRearLeft + g_CountRearRight + g_CountIndiLeft +           \
+      g_CountIndiRight + g_CountRear
 
 #define g_StartFrontRight (0)
 #define g_StartIndiRight (g_StartFrontRight + g_CountFrontRight)
