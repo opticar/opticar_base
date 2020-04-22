@@ -16,7 +16,7 @@
 
 // Comment these defines to disable features
 #define USE_MOTORS
-#define USE_ENCODERS
+// #define USE_ENCODERS // Disabled for now, needs hardware debugging
 #define USE_SYSTEM_LEDS
 #define USE_DEMO_LEDS
 #define USE_IMU
@@ -333,10 +333,15 @@ void moveBase()
     currentRPM4 = -currentRPM4;
 
   // Update motors via controllers
-  Motor1.spin(PidMotor1.compute(reqRPM.motor1, currentRPM1));
-  Motor2.spin(PidMotor2.compute(reqRPM.motor2, currentRPM1));
-  Motor3.spin(PidMotor3.compute(reqRPM.motor3, currentRPM1));
-  Motor4.spin(PidMotor4.compute(reqRPM.motor4, currentRPM1));
+  float targetSpeedMotor1 = PidMotor1.compute(reqRPM.motor1, currentRPM1);
+  float targetSpeedMotor2 = PidMotor2.compute(reqRPM.motor2, currentRPM1);
+  float targetSpeedMotor3 = PidMotor3.compute(reqRPM.motor3, currentRPM1);
+  float targetSpeedMotor4 = PidMotor4.compute(reqRPM.motor4, currentRPM1);
+
+  Motor1.spin(targetSpeedMotor1);
+  Motor2.spin(targetSpeedMotor2);
+  Motor3.spin(targetSpeedMotor3);
+  Motor4.spin(targetSpeedMotor4);
 #endif
 
   Kinematics::velocities currentVel = BaseKinematics.getVelocities(currentRPM1, currentRPM2, currentRPM3, currentRPM4);
